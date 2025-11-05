@@ -21,6 +21,7 @@ OLLAMA_MODEL = "gamma:1b"
 LOG_FILE = "rf_scan_log.csv"
 SCAN_RANGE_MHZ = ("100", "400") # Start and End frequency in MHz
 SCAN_BIN_WIDTH_HZ = 100000 # 100 KHz
+SCAN_NUM_SAMPLES = 131072 # Number of samples per frequency. Higher = slower but more sensitive.
 
 class RFAnalyzer:
     """
@@ -63,7 +64,8 @@ class RFAnalyzer:
             '-f', f'{SCAN_RANGE_MHZ[0]}:{SCAN_RANGE_MHZ[1]}',
             '-l', str(self.lna_gain),
             '-g', str(self.vga_gain),
-            '-w', str(SCAN_BIN_WIDTH_HZ)
+            '-w', str(SCAN_BIN_WIDTH_HZ),
+            '-n', str(SCAN_NUM_SAMPLES)
         ]
         if self.amp_enabled:
             command.append('-a')

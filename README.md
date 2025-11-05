@@ -50,6 +50,16 @@ Para instruções detalhadas sobre como instalar as dependências de sistema e c
 
 O programa iniciará a varredura e começará a registrar os dados no arquivo `rf_scan_log.csv`. Para parar o programa, pressione `Ctrl+C`.
 
+## Configuração
+
+Você pode personalizar o comportamento da varredura editando as constantes no início do arquivo `rf_analyzer.py`:
+
+-   `SCAN_RANGE_MHZ`: Define a faixa de frequência (início e fim) a ser varrida, em MHz.
+-   `SCAN_BIN_WIDTH_HZ`: Define a resolução da varredura, em Hz. Valores menores são mais precisos, mas podem gerar mais dados.
+-   `SCAN_NUM_SAMPLES`: Controla o tempo gasto em cada segmento de frequência.
+    -   **Valores maiores** (ex: `262144`) tornam a varredura mais lenta, mas aumentam a chance de detectar sinais fracos ou intermitentes (como uma transmissão de voz).
+    -   **Valores menores** (ex: `65536`) tornam a varredura mais rápida, ideal para encontrar sinais contínuos.
+
 ## Formato do Log (`rf_scan_log.csv`)
 
 O arquivo de log é um CSV com as seguintes colunas:
