@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous RF Analyzer</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; }
+        h1, h2 { color: #333; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background-color: #f9f9f9; padding: 15px; border-radius: 8px; }
+        #log-container { background-color: #1c1e21; color: #e0e0e0; font-family: "SF Mono", "Fira Code", "Consolas", monospace; height: 300px; overflow-y: scroll; padding: 15px; border-radius: 5px; font-size: 14px; }
+        #log-container p { margin: 0; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f5f5f5; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .status-item { background: #e7f3ff; padding: 10px; border-radius: 5px; }
+        .status-item strong { display: block; color: #0056b3; }
+    </style>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1><span id="status-indicator">📡</span> Autonomous RF Analyzer</h1>
+
+        <h2>Current Status</h2>
+        <div class="card status-grid">
+            <div class="status-item"><strong>LNA Gain</strong><span id="lna-gain">...</span> dB</div>
+            <div class="status-item"><strong>VGA Gain</strong><span id="vga-gain">...</span> dB</div>
+            <div class="status-item"><strong>AMP</strong><span id="amp-status">...</span></div>
+            <div class="status-item"><strong>Scan Range</strong><span id="scan-range">...</span></div>
+        </div>
+
+        <h2>Live Log</h2>
+        <div id="log-container"></div>
+
+        <h2>Signal History</h2>
+        <div class="card">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Frequency (MHz)</th>
+                        <th>Modulation</th>
+                        <th>Gains (LNA/VGA)</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
+
+            const logContainer = document.getElementById('log-container');
+            const historyTableBody = document.querySelector('#history-table tbody');
+            const statusIndicator = document.getElementById('status-indicator');
+
+            // --- Elements for Status Update ---
+            const lnaGainEl = document.getElementById('lna-gain');
+            const vgaGainEl = document.getElementById('vga-gain');
+            const ampStatusEl = document.getElementById('amp-status');
+            const scanRangeEl = document.getElementById('scan-range');
+
+            let blinker;
+            function startBlinking() {
+                if (blinker) return;
+                let visible = true;
+                blinker = setInterval(() => {
+                    statusIndicator.style.visibility = visible ? 'visible' : 'hidden';
+                    visible = !visible;
+                }, 500);
+            }
+
+            function stopBlinking() {
+                clearInterval(blinker);
+                blinker = null;
+                statusIndicator.style.visibility = 'visible';
+            }
+
+            socket.on('connect', () => {
+                console.log('Connected to server!');
+                addLog('Connected to the server backend.');
+                startBlinking();
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server.');
+                addLog('Disconnected from server.');
+                stopBlinking();
+            });
+
+            socket.on('log', (msg) => {
+                addLog(msg.data);
+            });
+
+            socket.on('state_update', (state) => {
+                lnaGainEl.textContent = state.lna_gain;
+                vgaGainEl.textContent = state.vga_gain;
+                ampStatusEl.textContent = state.amp_enabled ? 'ON' : 'OFF';
+                scanRangeEl.textContent = state.scan_range;
+            });
+
+            socket.on('new_signal', (data) => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${data.timestamp}</td>
+                    <td>${data.frequency}</td>
+                    <td>${data.modulation}</td>
+                    <td>${data.lna_gain} / ${data.vga_gain} dB</td>
+                    <td>${data.description}</td>
+                `;
+                // Add to the top of the table
+                historyTableBody.prepend(newRow);
+
+                // Keep the table from getting too long
+                while (historyTableBody.rows.length > 20) {
+                    historyTableBody.deleteRow(-1);
+                }
+            });
+
+            function addLog(message) {
+                const p = document.createElement('p');
+                p.textContent = `> ${message}`;
+                logContainer.appendChild(p);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

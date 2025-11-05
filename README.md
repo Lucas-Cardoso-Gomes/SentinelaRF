@@ -39,16 +39,20 @@ O programa opera em um ciclo contínuo:
 Para instruções detalhadas sobre como instalar as dependências de sistema e configurar o ambiente Python, por favor, consulte o arquivo:
 -   **[setup_instructions.md](./setup_instructions.md)**
 
-## Execução
+## Executando a Interface Web
 
-1.  Certifique-se de que o seu HackRF One está conectado.
-2.  Certifique-se de que o servidor Ollama está em execução e que o modelo `gamma:1b` foi baixado.
-3.  Execute o script principal:
+1.  **Certifique-se de que todos os pré-requisitos** (Hardware e Software) estão instalados e configurados corretamente.
+2.  **Instale as dependências Python**, incluindo as novas bibliotecas para o servidor web:
     ```bash
-    python3 rf_analyzer.py
+    pip install -r requirements.txt
     ```
+3.  **Inicie a aplicação:**
+    ```bash
+    python3 app.py
+    ```
+4.  **Acesse a interface:** Abra o seu navegador e acesse o endereço [http://localhost:5000](http://localhost:5000).
 
-O programa iniciará a varredura e começará a registrar os dados no arquivo `rf_scan_log.csv`. Para parar o programa, pressione `Ctrl+C`.
+Você verá o painel do analisador, que começará a exibir logs e sinais detectados em tempo real. O servidor iniciará a varredura de RF automaticamente em segundo plano. Para parar o servidor e a varredura, pressione `Ctrl+C` no terminal onde o `app.py` está sendo executado.
 
 ## Configuração
 
